@@ -93,7 +93,7 @@ Maps: Leaflet + CartoDB + OpenStreetMap (Nominatim)
 ## Local Development
 
 ```bash
-git clone https://github.com/Atharva2099/Trip.AI.git
+git clone https://github.com/Aaryav1130/Trip.AI.git
 cd Trip.AI
 npm install
 npm start

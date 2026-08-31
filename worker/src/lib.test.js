@@ -203,7 +203,7 @@ describe('isDevLoginAllowed', () => {
 
     it('blocks when origin is the production frontend', () => {
       expect(isDevLoginAllowed({
-        origin: 'https://atharva2099.github.io'
+        origin: 'https://Aaryav1130.github.io'
       })).toBe(false);
     });
 
@@ -454,7 +454,7 @@ describe('buildOpenRouterHeaders', () => {
 
   it('falls back to the production Trip.AI URL when no appUrl given', () => {
     const h = buildOpenRouterHeaders('k', '');
-    expect(h['HTTP-Referer']).toBe('https://atharva2099.github.io/Trip.AI');
+    expect(h['HTTP-Referer']).toBe('https://Aaryav1130.github.io/Trip.AI');
   });
 
   it('sets X-Title header to Trip.AI', () => {

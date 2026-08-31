@@ -11,7 +11,7 @@ database_id = "e9eea8bf-ec25-4da1-a34f-431285e390ef"
 # Base config — used by `wrangler dev` (local). No ENVIRONMENT var, so
 # the dev-login gate stays open for local testing.
 [vars]
-APP_URL = "https://atharva2099.github.io/Trip.AI"
+APP_URL = "https://Aaryav1130.github.io/Trip.AI"
 
 # Production config — used by `wrangler deploy --env production`. We
 # explicitly set ENVIRONMENT=production here so the worker code can
@@ -26,5 +26,5 @@ database_name = "tripai-database"
 database_id = "e9eea8bf-ec25-4da1-a34f-431285e390ef"
 
 [env.production.vars]
-APP_URL = "https://atharva2099.github.io/Trip.AI"
+APP_URL = "https://Aaryav1130.github.io/Trip.AI"
 ENVIRONMENT = "production"

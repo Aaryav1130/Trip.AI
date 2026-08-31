@@ -72,7 +72,7 @@ export function buildOpenRouterHeaders(apiKey, appUrl) {
   return {
     'Authorization': `Bearer ${apiKey}`,
     'Content-Type': 'application/json',
-    'HTTP-Referer': appUrl || 'https://atharva2099.github.io/Trip.AI',
+    'HTTP-Referer': appUrl || 'https://Aaryav1130.github.io/Trip.AI',
     'X-Title': 'Trip.AI'
   };
 }

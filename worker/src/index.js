@@ -15,8 +15,8 @@ const app = new Hono();
 
 // ─── CORS ────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
-  'https://atharva2099.github.io',
-  'https://atharva2099.github.io/Trip.AI',
+  'https://Aaryav1130.github.io',
+  'https://Aaryav1130.github.io/Trip.AI',
   'http://localhost:3000',
   'http://localhost:8787'
 ];
