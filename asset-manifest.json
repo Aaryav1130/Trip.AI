@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/Trip.AI/static/css/main.9c397c90.css",
+    "main.js": "/Trip.AI/static/js/main.e47cc563.js",
+    "static/js/453.08a00752.chunk.js": "/Trip.AI/static/js/453.08a00752.chunk.js",
+    "index.html": "/Trip.AI/index.html",
+    "main.9c397c90.css.map": "/Trip.AI/static/css/main.9c397c90.css.map",
+    "main.e47cc563.js.map": "/Trip.AI/static/js/main.e47cc563.js.map",
+    "453.08a00752.chunk.js.map": "/Trip.AI/static/js/453.08a00752.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.9c397c90.css",
+    "static/js/main.e47cc563.js"
+  ]
+}
