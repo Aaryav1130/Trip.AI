@@ -2,7 +2,7 @@
 
 An AI-powered travel itinerary generator with an interactive map, real cost estimates, and a Vanta Punk editorial design language. Plan trips by destination, dates, budget, and interests — then refine every detail through conversational AI.
 
-Live at 
+Live at : https://aaryav1130.github.io/Trip.AI/
 
 ---
 
