@@ -13,12 +13,36 @@ const UNSPLASH_IMAGES = [
 ];
 
 export default function LandingPage() {
-  const { loginWithGitHub, loginWithGoogle } = useAuth();
+  const { loginWithGoogle } = useAuth();
   const [currentImage, setCurrentImage] = useState(0);
   const [devLoading, setDevLoading] = useState(false);
   const [devError, setDevError] = useState(null);
   const [devTokenInput, setDevTokenInput] = useState('');
   const [showTokenInput, setShowTokenInput] = useState(false);
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState(null);
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  const handleEmailAuth = async (e) => {
+    e.preventDefault();
+    setEmailError(null);
+    try {
+      const res = await fetch(`${API_BASE}/auth/email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, action: isRegistering ? 'register' : 'login' })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Authentication failed');
+      
+      localStorage.setItem('tripai_token', data.token);
+      window.location.href = '/';
+    } catch (err) {
+      setEmailError(err.message);
+    }
+  };
 
   const isDev = process.env.NODE_ENV === 'development';
 
@@ -95,7 +119,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-cream">
       {/* Hero Section */}
-      <section className="relative h-screen min-h-[600px] overflow-hidden">
+      <section className="relative min-h-screen min-h-[650px] overflow-hidden flex flex-col">
         {/* Background images with crossfade */}
         {UNSPLASH_IMAGES.map((src, i) => (
           <div
@@ -115,7 +139,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-ink/60" />
 
         {/* Content */}
-        <div className="relative z-10 h-full flex flex-col justify-center px-6 md:px-12 lg:px-20">
+        <div className="relative z-10 flex-1 flex flex-col justify-center px-6 md:px-12 lg:px-20 py-12">
           <div className="max-w-3xl">
             <div className="flex items-center gap-3 mb-8">
               <Compass size={28} className="text-terra" strokeWidth={1.5} />
@@ -131,19 +155,50 @@ export default function LandingPage() {
               Tell us where you want to go — we handle the details.
             </p>
 
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={loginWithGitHub}
-                className="flex items-center gap-2 px-6 py-3 text-xs font-medium uppercase tracking-[0.14em] bg-cream text-ink hover:bg-cream-dark transition-colors"
-              >
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-                </svg>
-                Continue with GitHub
-              </button>
+            <div className="flex flex-col gap-4 max-w-sm">
+              <form onSubmit={handleEmailAuth} className="flex flex-col gap-3">
+                <input
+                  type="email"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="px-4 py-3 bg-ink/40 border border-cream/30 text-cream placeholder:text-cream/50 outline-none focus:border-cream/70 text-sm"
+                  required
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="px-4 py-3 bg-ink/40 border border-cream/30 text-cream placeholder:text-cream/50 outline-none focus:border-cream/70 text-sm"
+                  required
+                />
+                {emailError && <p className="text-red-400 text-xs">{emailError}</p>}
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    onClick={() => setIsRegistering(false)}
+                    className="flex-1 px-4 py-3 text-xs font-medium uppercase tracking-[0.14em] bg-cream text-ink hover:bg-cream-dark transition-colors"
+                  >
+                    Log In
+                  </button>
+                  <button
+                    type="submit"
+                    onClick={() => setIsRegistering(true)}
+                    className="flex-1 px-4 py-3 text-xs font-medium uppercase tracking-[0.14em] border border-cream/30 text-cream hover:bg-cream/10 transition-colors"
+                  >
+                    Register
+                  </button>
+                </div>
+              </form>
+              <div className="flex items-center gap-4 my-1">
+                <div className="flex-1 border-t border-cream/20"></div>
+                <span className="text-[10px] uppercase tracking-[0.14em] text-cream/40">OR</span>
+                <div className="flex-1 border-t border-cream/20"></div>
+              </div>
               <button
                 onClick={loginWithGoogle}
-                className="flex items-center gap-2 px-6 py-3 text-xs font-medium uppercase tracking-[0.14em] border border-cream/30 text-cream hover:bg-cream/10 transition-colors"
+                className="flex items-center justify-center gap-2 px-6 py-3 text-xs font-medium uppercase tracking-[0.14em] border border-cream/30 text-cream hover:bg-cream/10 transition-colors"
               >
                 <svg viewBox="0 0 24 24" width="14" height="14">
                   <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
@@ -155,11 +210,7 @@ export default function LandingPage() {
               </button>
             </div>
 
-            <p className="mt-6 text-[10px] uppercase tracking-[0.14em] text-cream/40">
-              No passwords needed. One-click sign in.
-            </p>
-
-            <div className="mt-8 pt-6 border-t border-cream/20">
+            <div className="mt-4 pt-4 border-t border-cream/20">
               {isDev ? (
                 <button
                   onClick={() => devSignIn()}
@@ -218,7 +269,7 @@ export default function LandingPage() {
         </div>
 
         {/* Image dots indicator */}
-        <div className="absolute bottom-8 left-6 md:left-12 lg:left-20 z-10 flex gap-2">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex gap-2">
           {UNSPLASH_IMAGES.map((_, i) => (
             <button
               key={i}

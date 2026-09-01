@@ -6,7 +6,7 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "tripai-database"
-database_id = "e9eea8bf-ec25-4da1-a34f-431285e390ef"
+database_id = "fd83d52d-eca1-459f-9de5-bbe4109f2ab0"
 
 # Base config — used by `wrangler dev` (local). No ENVIRONMENT var, so
 # the dev-login gate stays open for local testing.
@@ -23,7 +23,7 @@ name = "tripai-api"
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "tripai-database"
-database_id = "e9eea8bf-ec25-4da1-a34f-431285e390ef"
+database_id = "fd83d52d-eca1-459f-9de5-bbe4109f2ab0"
 
 [env.production.vars]
 APP_URL = "https://Aaryav1130.github.io/Trip.AI"

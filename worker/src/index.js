@@ -129,82 +129,70 @@ function appRedirect(appOrigin, path, defaultOrigin) {
   return `${origin}/Trip.AI${path}`;
 }
 
-app.get('/auth/github', async (c) => {
+// ─── Email Auth ────────────────────────────────────────────────
+
+async function hashPassword(password, salt) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + salt);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+app.post('/auth/email', async (c) => {
   try {
-    const randomId = generateId();
-    const clientId = c.env.GITHUB_CLIENT_ID;
-    if (!clientId) {
-      return c.json({ error: 'GITHUB_CLIENT_ID not configured' }, 500);
+    const body = await c.req.json();
+    const { email, password, action } = body;
+    if (!email || !password) return c.json({ error: 'Email and password required' }, 400);
+
+    const db = c.env.DB;
+    const salt = "tripai-fixed-salt"; // A simple fixed salt
+    const hashedPassword = await hashPassword(password, salt);
+
+    let userId, userName;
+
+    if (action === 'register') {
+      userId = `email_${generateId()}`;
+      userName = email.split('@')[0];
+      try {
+        await db.prepare(
+          `INSERT INTO users (id, email, name, password_hash) VALUES (?, ?, ?, ?)`
+        ).bind(userId, email, userName, hashedPassword).run();
+      } catch (err) {
+        if (err.message.includes('UNIQUE constraint failed')) {
+          return c.json({ error: 'Email already exists. Try logging in.' }, 400);
+        }
+        throw err;
+      }
+    } else {
+      // Login
+      const user = await db.prepare(
+        `SELECT id, name, password_hash FROM users WHERE email = ?`
+      ).bind(email).first();
+
+      if (!user || user.password_hash !== hashedPassword) {
+        return c.json({ error: 'Invalid email or password' }, 401);
+      }
+      userId = user.id;
+      userName = user.name;
     }
-    const origin = c.req.query('origin') || '';
-    const allowed = ALLOWED_ORIGINS.some(o => origin.startsWith(o));
-    const appOrigin = allowed ? origin : c.env.APP_URL;
-    const state = encodeState(randomId, appOrigin);
-    const redirectUri = `${new URL(c.req.url).origin}/auth/github/callback`;
-    const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email&state=${state}`;
-    return c.redirect(url);
+
+    const sessionId = generateId();
+    const expiresAt = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+    
+    await db.prepare(
+      `INSERT INTO sessions (id, user_id, token, expires_at) VALUES (?, ?, ?, ?)`
+    ).bind(sessionId, userId, sessionId, expiresAt).run();
+
+    const jwt = await signJWT(
+      { sub: userId, email: email, name: userName, jti: sessionId, exp: expiresAt },
+      c.env.JWT_SECRET
+    );
+
+    return c.json({ token: jwt, user: { id: userId, email, name: userName } });
   } catch (err) {
-    return c.json({ error: err.message, stack: err.stack }, 500);
+    return c.json({ error: err.message }, 500);
   }
-});
-
-app.get('/auth/github/callback', async (c) => {
-  const code = c.req.query('code');
-  const stateParam = c.req.query('state');
-  const { s: state, o: appOrigin } = decodeState(stateParam);
-
-  if (!code) {
-    return c.redirect(appRedirect(appOrigin, '/?error=auth_failed', c.env.APP_URL));
-  }
-
-  const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
-    method: 'POST',
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      client_id: c.env.GITHUB_CLIENT_ID,
-      client_secret: c.env.GITHUB_CLIENT_SECRET,
-      code,
-      redirect_uri: `${new URL(c.req.url).origin}/auth/github/callback`
-    })
-  });
-  const tokenData = await tokenRes.json();
-  if (!tokenData.access_token) {
-    return c.redirect(appRedirect(appOrigin, '/?error=auth_failed', c.env.APP_URL));
-  }
-
-  const userRes = await fetch('https://api.github.com/user', {
-    headers: { Authorization: `Bearer ${tokenData.access_token}`, 'User-Agent': 'Trip.AI' }
-  });
-  const githubUser = await userRes.json();
-
-  const emailRes = await fetch('https://api.github.com/user/emails', {
-    headers: { Authorization: `Bearer ${tokenData.access_token}`, 'User-Agent': 'Trip.AI' }
-  });
-  const emails = await emailRes.json();
-  const primaryEmail = emails.find(e => e.primary)?.email || emails[0]?.email || githubUser.login + '@github.com';
-
-  const userId = `gh_${githubUser.id}`;
-  const db = c.env.DB;
-
-  await db.prepare(
-    `INSERT INTO users (id, email, name, avatar) VALUES (?, ?, ?, ?)
-     ON CONFLICT(id) DO UPDATE SET name=excluded.name, avatar=excluded.avatar`
-  ).bind(userId, primaryEmail, githubUser.name || githubUser.login, githubUser.avatar_url).run();
-
-  const sessionId = generateId();
-  const expiresAt = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
-  // The legacy `token` column is still NOT NULL UNIQUE; pass sessionId to
-  // satisfy the constraint. The new flow identifies sessions by `id` (= jti).
-  await db.prepare(
-    `INSERT INTO sessions (id, user_id, token, expires_at) VALUES (?, ?, ?, ?)`
-  ).bind(sessionId, userId, sessionId, expiresAt).run();
-
-  const jwt = await signJWT(
-    { sub: userId, email: primaryEmail, name: githubUser.name || githubUser.login, jti: sessionId, exp: expiresAt },
-    c.env.JWT_SECRET
-  );
-
-  return c.redirect(appRedirect(appOrigin, `/?token=${jwt}`, c.env.APP_URL));
 });
 
 // ─── Google OAuth ────────────────────────────────────────────
