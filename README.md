@@ -13,7 +13,7 @@ Frontend: GitHub Pages (React + Tailwind)
 Backend API: Cloudflare Workers (serverless, edge-computed)
 Database: Cloudflare D1 (SQLite at the edge)
 Auth: GitHub + Google OAuth2 with JWT sessions
-LLM: OpenRouter (bring-your-own-key)
+LLM: OpenRouter
 Maps: Leaflet + CartoDB + OpenStreetMap (Nominatim)
 ```
 
