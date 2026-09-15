@@ -15,16 +15,16 @@ const app = new Hono();
 
 // ─── CORS ────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
+  'https://aaryav1130.github.io',
   'https://Aaryav1130.github.io',
-  'https://Aaryav1130.github.io/Trip.AI',
   'http://localhost:3000',
-  'http://localhost:8787'
+  'http://localhost:3001'
 ];
 
 app.use('*', cors({
   origin: (origin) => {
     if (!origin) return ALLOWED_ORIGINS[0];
-    if (ALLOWED_ORIGINS.some(o => origin.startsWith(o))) return origin;
+    if (ALLOWED_ORIGINS.some(o => origin.toLowerCase().startsWith(o.toLowerCase()))) return origin;
     return ALLOWED_ORIGINS[0];
   },
   credentials: true,
@@ -125,7 +125,10 @@ function decodeState(state) {
 
 function appRedirect(appOrigin, path, defaultOrigin) {
   const origin = appOrigin || defaultOrigin;
-  if (origin.includes('localhost')) return `${origin}${path}`;
+  // If origin is exactly localhost, or already contains /Trip.AI, just append path
+  if (origin.includes('localhost') || origin.endsWith('/Trip.AI')) {
+    return `${origin}${path}`;
+  }
   return `${origin}/Trip.AI${path}`;
 }
 
@@ -149,32 +152,37 @@ app.post('/auth/email', async (c) => {
     const salt = "tripai-fixed-salt"; // A simple fixed salt
     const hashedPassword = await hashPassword(password, salt);
 
+    const existingUser = await db.prepare(
+      `SELECT id, name, password_hash FROM users WHERE email = ?`
+    ).bind(email).first();
+
     let userId, userName;
 
     if (action === 'register') {
+      if (existingUser) {
+        if (!existingUser.password_hash) {
+          return c.json({ error: 'This email uses Google Sign-in. Please click "Continue with Google".' }, 400);
+        }
+        return c.json({ error: 'Email already exists. Try logging in.' }, 400);
+      }
       userId = `email_${generateId()}`;
       userName = email.split('@')[0];
-      try {
-        await db.prepare(
-          `INSERT INTO users (id, email, name, password_hash) VALUES (?, ?, ?, ?)`
-        ).bind(userId, email, userName, hashedPassword).run();
-      } catch (err) {
-        if (err.message.includes('UNIQUE constraint failed')) {
-          return c.json({ error: 'Email already exists. Try logging in.' }, 400);
-        }
-        throw err;
-      }
+      await db.prepare(
+        `INSERT INTO users (id, email, name, password_hash) VALUES (?, ?, ?, ?)`
+      ).bind(userId, email, userName, hashedPassword).run();
     } else {
       // Login
-      const user = await db.prepare(
-        `SELECT id, name, password_hash FROM users WHERE email = ?`
-      ).bind(email).first();
-
-      if (!user || user.password_hash !== hashedPassword) {
+      if (!existingUser) {
         return c.json({ error: 'Invalid email or password' }, 401);
       }
-      userId = user.id;
-      userName = user.name;
+      if (!existingUser.password_hash) {
+        return c.json({ error: 'This email uses Google Sign-in. Please click "Continue with Google".' }, 400);
+      }
+      if (existingUser.password_hash !== hashedPassword) {
+        return c.json({ error: 'Invalid email or password' }, 401);
+      }
+      userId = existingUser.id;
+      userName = existingUser.name;
     }
 
     const sessionId = generateId();
