@@ -1,6 +1,6 @@
 // Single source of truth for the Worker/API base URL.
 // Override at build time with REACT_APP_API_BASE.
-export const API_BASE = process.env.REACT_APP_API_BASE || 'https://tripai-api.athuspydy.workers.dev';
+export const API_BASE = process.env.REACT_APP_API_BASE || 'https://tripai-api.aaryav1130.workers.dev';
 
 // Whitelist of models the client may pick.
 //
