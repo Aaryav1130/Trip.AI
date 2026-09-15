@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Compass, MapPin, Calendar, DollarSign, Sparkles, ArrowRight, FlaskConical } from 'lucide-react';
+import { Compass, MapPin, Calendar, DollarSign, Sparkles, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../config';
 
@@ -210,61 +210,7 @@ export default function LandingPage() {
               </button>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-cream/20">
-              {isDev ? (
-                <button
-                  onClick={() => devSignIn()}
-                  disabled={devLoading}
-                  className="flex items-center gap-2 px-6 py-3 text-xs font-medium uppercase tracking-[0.14em] border border-cream/40 text-cream/80 hover:text-cream hover:border-cream/70 transition-colors disabled:opacity-50"
-                >
-                  <FlaskConical size={13} strokeWidth={1.5} />
-                  {devLoading ? 'Signing in...' : 'Dev Sign-in (local only)'}
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setShowTokenInput((s) => !s)}
-                    disabled={devLoading}
-                    className="flex items-center gap-2 px-6 py-3 text-xs font-medium uppercase tracking-[0.14em] border border-cream/40 text-cream/80 hover:text-cream hover:border-cream/70 transition-colors disabled:opacity-50"
-                  >
-                    <FlaskConical size={13} strokeWidth={1.5} />
-                    {showTokenInput ? 'Hide dev sign-in' : 'Dev sign-in (token)'}
-                  </button>
-                  {showTokenInput && (
-                    <form
-                      onSubmit={(e) => { e.preventDefault(); devSignIn(devTokenInput); }}
-                      className="mt-3 flex gap-2"
-                    >
-                      <input
-                        type="password"
-                        value={devTokenInput}
-                        onChange={(e) => setDevTokenInput(e.target.value)}
-                        placeholder="Paste DEV_LOGIN_TOKEN..."
-                        className="flex-1 px-3 py-2 bg-cream/10 border border-cream/30 text-cream placeholder-cream/40 text-xs focus:outline-none focus:border-cream"
-                        autoFocus
-                      />
-                      <button
-                        type="submit"
-                        disabled={devLoading || !devTokenInput}
-                        className="px-4 py-2 text-xs font-medium uppercase tracking-[0.14em] bg-cream text-ink hover:bg-cream/80 transition-colors disabled:opacity-50"
-                      >
-                        {devLoading ? 'Signing in...' : 'Sign in'}
-                      </button>
-                    </form>
-                  )}
-                </>
-              )}
-              {devError && (
-                <p className="mt-3 text-[10px] uppercase tracking-[0.14em] text-terra">
-                  {devError}
-                </p>
-              )}
-              <p className="mt-3 text-[10px] uppercase tracking-[0.14em] text-cream/40">
-                {isDev
-                  ? 'Local development only — no token required'
-                  : 'Set DEV_LOGIN_TOKEN on the worker, then paste it above. Or use ?dev_login=<token> in the URL.'}
-              </p>
-            </div>
+
           </div>
         </div>
 
